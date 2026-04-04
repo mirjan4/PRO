@@ -580,9 +580,9 @@ const S_TOTAL = reorder(TOTAL);
 
 /* ── Formatters ──────────────────────────────────────── */
 const fmt  = v => v ? '' + Number(v).toLocaleString('en-IN') : '';
-const fmtL = v => v >= 100000 ? ''+(v/100000).toFixed(2)+'L' : '₹'+(v/1000).toFixed(0)+'K';
+const fmtL = v => v >= 100000 ? ''+(v/100000).toFixed(2)+'L' : ''+(v/1000).toFixed(0)+'K';
 const fmtS = v => v ? '' + Number(v).toLocaleString('en-IN') : '–';
-const yTick = v => v>=100000?''+(v/100000).toFixed(1)+'L':v>=1000?'₹'+(v/1000).toFixed(0)+'K':v===0?'₹0':'';
+const yTick = v => v>=100000?''+(v/100000).toFixed(1)+'L':v>=1000?''+(v/1000).toFixed(0)+'K':v===0?'0':'';
 
 /* ── Stat Grid (Slide 1) ─────────────────────────────── */
 const statData = [
@@ -771,8 +771,10 @@ function goSlide(next) {
       from.classList.remove('active');
       from.style.opacity   = '0';
       from.style.transform = `translateX(${-dir * 80}px)`;
+      from.style.pointerEvents = 'none';
 
       // Animate in next
+      to.classList.add('active');
       to.style.opacity   = '1';
       to.style.transform = 'translateX(0)';
       to.style.pointerEvents = 'all';
@@ -787,7 +789,9 @@ function goSlide(next) {
         from.style.opacity   = '';
         from.style.transform = '';
         from.style.zIndex    = '';
+        from.classList.remove('active');
         to.style.zIndex      = '';
+        to.style.pointerEvents = 'all';
         animating = false;
       }, 650);
     });
