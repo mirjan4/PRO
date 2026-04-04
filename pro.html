@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRO Collection Dashboard – Markaz Takaful</title>
+<meta name="description" content="Monthly collection report for PRO PROs – Markaz Takaful 2025–2026">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<style>
+/* ══════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:     #080c14;
+  --card:   #0d1220;
+  --border: #1e2740;
+  --text:   #e8edf5;
+  --muted:  #4e5f7a;
+  --jan:    #4c9eff;
+  --feb:    #3ecf8e;
+  --mar:    #f5c518;
+  --total:  #a78bfa;
+  --accent: #4c9eff;
+  --radius: 18px;
+  --slide-dur: 600ms;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  user-select: none;
+}
+
+/* ══════════════════════════════════════
+   SLIDES CONTAINER
+══════════════════════════════════════ */
+#deck {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 64px 80px;
+  opacity: 0;
+  transform: translateX(80px);
+  pointer-events: none;
+  transition: opacity var(--slide-dur) cubic-bezier(.4,0,.2,1),
+              transform var(--slide-dur) cubic-bezier(.4,0,.2,1);
+  will-change: transform, opacity;
+}
+
+.slide.active {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: all;
+  z-index: 2;
+}
+
+.slide.out-left {
+  opacity: 0;
+  transform: translateX(-80px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ══════════════════════════════════════
+   SLIDE BACKGROUNDS
+══════════════════════════════════════ */
+.slide-title   { background: radial-gradient(ellipse at 30% 50%, #0d1f40 0%, #080c14 70%); }
+.slide-total   { background: radial-gradient(ellipse at 70% 30%, #130d2a 0%, #080c14 70%); }
+.slide-ranking { background: radial-gradient(ellipse at 50% 80%, #0d1a14 0%, #080c14 70%); }
+.slide-jan     { background: radial-gradient(ellipse at 20% 40%, #0c1c33 0%, #080c14 70%); }
+.slide-feb     { background: radial-gradient(ellipse at 80% 60%, #0a2018 0%, #080c14 70%); }
+.slide-mar     { background: radial-gradient(ellipse at 40% 20%, #241e08 0%, #080c14 70%); }
+
+/* ══════════════════════════════════════
+   SLIDE 1 — TITLE
+══════════════════════════════════════ */
+.title-badge {
+  display: inline-block;
+  padding: 6px 20px;
+  background: #4c9eff15;
+  border: 1px solid #4c9eff33;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--jan);
+  margin-bottom: 24px;
+  animation: fadeUp .8s ease both;
+}
+
+.title-main {
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 900;
+  line-height: 1.1;
+  text-align: center;
+  background: linear-gradient(135deg, #fff 20%, #6b8ab4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: fadeUp .8s .1s ease both;
+  margin-bottom: 16px;
+}
+
+.title-sub {
+  font-size: 16px;
+  color: var(--muted);
+  text-align: center;
+  animation: fadeUp .8s .2s ease both;
+  margin-bottom: 48px;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 920px;
+  animation: fadeUp .8s .35s ease both;
+}
+
+.stat-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: transform .2s;
+}
+.stat-box:hover { transform: translateY(-4px); }
+.stat-box::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.stat-box.s-total::before { background: var(--total); }
+.stat-box.s-jan::before   { background: var(--jan); }
+.stat-box.s-feb::before   { background: var(--feb); }
+.stat-box.s-mar::before   { background: var(--mar); }
+.stat-box .slabel { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.stat-box .sval { font-size: 26px; font-weight: 800; }
+.stat-box.s-total .sval { color: var(--total); }
+.stat-box.s-jan   .sval { color: var(--jan); }
+.stat-box.s-feb   .sval { color: var(--feb); }
+.stat-box.s-mar   .sval { color: var(--mar); }
+.stat-box .ssub { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+/* ══════════════════════════════════════
+   CHART SLIDES
+══════════════════════════════════════ */
+.slide-inner {
+  width: 100%;
+  max-width: 1400px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.slide-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.slide-heading-left {}
+
+.slide-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.slide-h2 {
+  font-size: clamp(22px, 2.5vw, 36px);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.15;
+}
+
+.slide-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 700;
+  align-self: flex-start;
+  margin-top: 6px;
+}
+.pill-total  { background:#a78bfa18; color:var(--total); border:1px solid #a78bfa33; }
+.pill-jan    { background:#4c9eff18; color:var(--jan);   border:1px solid #4c9eff33; }
+.pill-feb    { background:#3ecf8e18; color:var(--feb);   border:1px solid #3ecf8e33; }
+.pill-mar    { background:#f5c51818; color:var(--mar);   border:1px solid #f5c51833; }
+
+.chart-area {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+.chart-area canvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ══════════════════════════════════════
+   RANKING TABLE SLIDE
+══════════════════════════════════════ */
+.rank-wrap {
+  width: 100%;
+  max-width: 1100px;
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
+  scrollbar-width: thin;
+  scrollbar-color: #1e2740 transparent;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+thead th {
+  position: sticky; top: 0;
+  background: #0d1220ee;
+  backdrop-filter: blur(8px);
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+tbody td {
+  padding: 11px 14px;
+  border-bottom: 1px solid #1e274033;
+  color: var(--text);
+  white-space: nowrap;
+  transition: background .15s;
+}
+tbody tr:hover td { background: #ffffff06; }
+
+.rank-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 50%;
+  font-size: 10px; font-weight: 800;
+}
+.rank-badge.gold   { background:#f5c51822; color:#f5c518; border:1px solid #f5c51844; }
+.rank-badge.silver { background:#94a3b822; color:#94a3b8; border:1px solid #94a3b844; }
+.rank-badge.bronze { background:#cd7f3222; color:#cd7f32; border:1px solid #cd7f3244; }
+.rank-badge.plain  { background:#ffffff0a; color:#64748b; }
+
+.bar-row { display:flex; align-items:center; gap:8px; }
+.bar-bg  { flex:1; height:5px; background:#ffffff0d; border-radius:3px; overflow:hidden; }
+.bar-fill{ height:100%; border-radius:3px; }
+
+/* ══════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════ */
+#nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  background: linear-gradient(to top, #080c14ee, transparent);
+  z-index: 100;
+  pointer-events: none;
+}
+
+.nav-btn {
+  pointer-events: all;
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 22px;
+  background: #ffffff0d;
+  border: 1px solid #ffffff15;
+  border-radius: 50px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  backdrop-filter: blur(8px);
+}
+.nav-btn:hover { background: #ffffff18; border-color: #ffffff30; transform: scale(1.04); }
+.nav-btn:active { transform: scale(.97); }
+.nav-btn:disabled { opacity: .25; cursor: default; transform: none; }
+
+.nav-btn svg { width: 16px; height: 16px; }
+
+/* Slide counter */
+#slide-counter {
+  pointer-events: all;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.dots {
+  display: flex;
+  gap: 7px;
+}
+
+.dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #ffffff20;
+  transition: all .3s;
+  cursor: pointer;
+}
+.dot.active {
+  background: var(--accent);
+  width: 22px;
+  border-radius: 4px;
+}
+
+.counter-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+
+/* ══════════════════════════════════════
+   SLIDE NUMBER (top-right corner)
+══════════════════════════════════════ */
+#slide-label {
+  position: fixed;
+  top: 20px; right: 28px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 1px;
+  z-index: 100;
+  transition: opacity .3s;
+}
+
+/* ══════════════════════════════════════
+   PROGRESS BAR
+══════════════════════════════════════ */
+#progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--jan), var(--total));
+  z-index: 200;
+  transition: width var(--slide-dur) cubic-bezier(.4,0,.2,1);
+}
+
+/* ══════════════════════════════════════
+   KEYBOARD HINT
+══════════════════════════════════════ */
+#kb-hint {
+  position: fixed;
+  top: 20px; left: 28px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #ffffff18;
+  letter-spacing: 1px;
+  z-index: 100;
+}
+
+/* ══════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════ */
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(20px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════ */
+@media (max-width: 768px) {
+  .slide { padding: 48px 20px 90px; }
+  .stat-grid { grid-template-columns: repeat(2,1fr); }
+  .slide-h2 { font-size: 22px; }
+  #nav { padding: 0 16px; }
+  .nav-btn { padding: 9px 16px; font-size: 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ Progress Bar ══ -->
+<div id="progress-bar"></div>
+
+<!-- ══ Corner Label ══ -->
+<div id="slide-label">1 / 6</div>
+<div id="kb-hint">← → Arrow Keys</div>
+
+<!-- ════════════════════════════════════════════
+     DECK
+════════════════════════════════════════════ -->
+<div id="deck">
+
+  <!-- ── SLIDE 1: TITLE ── -->
+  <section class="slide slide-title active" data-slide="0">
+    <div class="title-badge">Markaz Takaful Reporting System</div>
+    <div class="title-main">📊 PRO Collection<br>Dashboard</div>
+    <div class="title-sub">PRO-wise Collection Report &nbsp;•&nbsp; January – March 2026</div>
+    <div class="stat-grid" id="statGrid"></div>
+  </section>
+
+  <!-- ── SLIDE 2: TOTAL CHART ── -->
+  <section class="slide slide-total" data-slide="1">
+    <div class="slide-inner">
+      <div class="slide-heading">
+        <div class="slide-heading-left">
+          <div class="slide-tag">Overview</div>
+          <div class="slide-h2">3-Month Total Collection<br>per PRO</div>
+        </div>
+        <div>
+          <span class="slide-pill pill-jan">█ Jan 2026</span>
+          &nbsp;
+          <span class="slide-pill pill-feb">█ Feb 2026</span>
+          &nbsp;
+          <span class="slide-pill pill-mar">█ Mar 2026</span>
+        </div>
+      </div>
+      <div class="chart-area"><canvas id="chartTotal"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 3: RANKING ── -->
+  <section class="slide slide-ranking" data-slide="2">
+    <div class="slide-heading" style="width:100%;max-width:1100px;margin-bottom:20px">
+      <div class="slide-heading-left">
+        <div class="slide-tag">Leaderboard</div>
+        <div class="slide-h2">🏆 Top PRO Collectors Ranking</div>
+      </div>
+    </div>
+    <div class="rank-wrap">
+      <table id="rankTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>PRO Name</th>
+            <th>Jan 2026</th>
+            <th>Feb 2026</th>
+            <th>Mar 2026</th>
+            <th>3-Month Total</th>
+            <th style="min-width:140px">Share</th>
+          </tr>
+        </thead>
+        <tbody id="rankBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 4: JAN ── -->
+  <section class="slide slide-jan" data-slide="3">
+    <div class="slide-inner">
+      <div class="slide-heading">
+        <div class="slide-heading-left">
+          <div class="slide-tag">January 2026 – PRO-wise Breakdown</div>
+          <div class="slide-h2">January 2026 Collection</div>
+        </div>
+        <span class="slide-pill pill-jan">█ Jan 2026</span>
+      </div>
+      <div class="chart-area"><canvas id="chartJan"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 5: FEB ── -->
+  <section class="slide slide-feb" data-slide="4">
+    <div class="slide-inner">
+      <div class="slide-heading">
+        <div class="slide-heading-left">
+          <div class="slide-tag">February 2026 – PRO-wise Breakdown</div>
+          <div class="slide-h2">February 2026 Collection</div>
+        </div>
+        <span class="slide-pill pill-feb">█ Feb 2026</span>
+      </div>
+      <div class="chart-area"><canvas id="chartFeb"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 6: MAR ── -->
+  <section class="slide slide-mar" data-slide="5">
+    <div class="slide-inner">
+      <div class="slide-heading">
+        <div class="slide-heading-left">
+          <div class="slide-tag">March 2026 – PRO-wise Breakdown</div>
+          <div class="slide-h2">March 2026 Collection</div>
+        </div>
+        <span class="slide-pill pill-mar">█ Mar 2026</span>
+      </div>
+      <div class="chart-area"><canvas id="chartMar"></canvas></div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ════ NAVIGATION ════ -->
+<div id="nav">
+  <button class="nav-btn" id="btnPrev" onclick="goSlide(current-1)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Previous
+  </button>
+
+  <div id="slide-counter">
+    <div class="dots" id="dots"></div>
+    <div class="counter-text" id="counterText">SLIDE 1 OF 6</div>
+  </div>
+
+  <button class="nav-btn" id="btnNext" onclick="goSlide(current+1)">
+    Next
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCRIPT
+════════════════════════════════════════════ -->
+<script>
+Chart.register(ChartDataLabels);
+
+/* ── Data ─────────────────────────────────────────────── */
+const NAMES = [
+  "VPM SAQUAFI","KOYA SAQUAFI","SYED UVAIS SAQUAFI","ABDUL MAJEED ZAINI",
+  "HUSAIN SAQAFI MADAVOOR","MOOSA SAQAFI","SALEEM MUSLIYAR","FALAL SAQAFI",
+  "GAFOOR SAQAFI UMRA","PALAPETTIPPARA","MARZOOQ SA`ADI","DULKIFILI SAQUAFI AMINI",
+  "SAEED SAQAFI CP","MANSOOR SAQUAFI","MUNEER MADANI","KAREEM SAQAQFI UMRA",
+  "ABDULLA SAQUAFI MUMBAI","KALEEL SAQUAFI THANALA","MUNEER KAMIL SAQUAFI","KADER SAQUAFI BNG"
+];
+
+const JAN = [636550,891500,175880,259890,147659,183619,161999,82998,45111,17400,7000,32100,133160,2000,8300,10000,29000,null,null,null];
+const FEB = [694700,885008,233560,519520,130292,168500,76053,70500,46000,212400,2500,12100,62500,65923,8300,62340,163000,10000,18527,null];
+const MAR = [111300,719263,276500,624750,289152,168500,121408,65500,157050,33600,5000,27600,23300,227070,8300,17500,170500,58400,103814,21500];
+
+const TOTAL = NAMES.map((_,i) => (JAN[i]||0)+(FEB[i]||0)+(MAR[i]||0));
+const GRAND  = TOTAL.reduce((a,b)=>a+b,0);
+
+/* ── Sort by total desc ───────────────────────────────── */
+const IDX = NAMES.map((_,i)=>i).sort((a,b)=>TOTAL[b]-TOTAL[a]);
+const reorder = arr => IDX.map(i=>arr[i]);
+
+const S_NAMES = reorder(NAMES);
+const S_SHORT = S_NAMES.map(n=>{ const w=n.split(' '); return w.length>=2?w[0]+'\n'+w[1]:w[0]; });
+const S_JAN   = reorder(JAN);
+const S_FEB   = reorder(FEB);
+const S_MAR   = reorder(MAR);
+const S_TOTAL = reorder(TOTAL);
+
+/* ── Formatters ──────────────────────────────────────── */
+const fmt  = v => v ? '₹' + Number(v).toLocaleString('en-IN') : '';
+const fmtL = v => v >= 100000 ? '₹'+(v/100000).toFixed(2)+'L' : '₹'+(v/1000).toFixed(0)+'K';
+const fmtS = v => v ? '₹'+(v/100000).toFixed(2)+'L' : '–';
+const yTick = v => v>=100000?'₹'+(v/100000).toFixed(1)+'L':v>=1000?'₹'+(v/1000).toFixed(0)+'K':v===0?'₹0':'';
+
+/* ── Stat Grid (Slide 1) ─────────────────────────────── */
+const statData = [
+  { label:'3-Month Total', val:GRAND,                              cls:'s-total', sub:'All PROs combined' },
+  { label:'January 2026',  val:JAN.reduce((a,b)=>a+(b||0),0),    cls:'s-jan',   sub:'Month 1 of Q1' },
+  { label:'February 2026', val:FEB.reduce((a,b)=>a+(b||0),0),    cls:'s-feb',   sub:'Month 2 of Q1' },
+  { label:'March 2026',    val:MAR.reduce((a,b)=>a+(b||0),0),    cls:'s-mar',   sub:'Month 3 of Q1' },
+];
+const sg = document.getElementById('statGrid');
+statData.forEach(d => {
+  sg.innerHTML += `
+    <div class="stat-box ${d.cls}">
+      <div class="slabel">${d.label}</div>
+      <div class="sval">${fmtL(d.val)}</div>
+      <div class="ssub">${d.sub}</div>
+    </div>`;
+});
+
+/* ── Rank Table (Slide 3) ────────────────────────────── */
+const ranked = IDX.map((origIdx, rank) => ({
+  name: NAMES[origIdx],
+  jan: JAN[origIdx]||0, feb: FEB[origIdx]||0, mar: MAR[origIdx]||0,
+  total: TOTAL[origIdx], rank
+}));
+const maxT = ranked[0].total;
+const tbody = document.getElementById('rankBody');
+ranked.forEach((r,rank) => {
+  let bc='plain', icon=rank+1;
+  if(rank===0){bc='gold';icon='🥇';}
+  else if(rank===1){bc='silver';icon='🥈';}
+  else if(rank===2){bc='bronze';icon='🥉';}
+  const pct = (r.total/maxT*100).toFixed(0);
+  const share = (r.total/GRAND*100).toFixed(1);
+  tbody.innerHTML += `
+    <tr>
+      <td><span class="rank-badge ${bc}">${icon}</span></td>
+      <td style="font-weight:600">${r.name}</td>
+      <td style="color:var(--jan)">${fmtS(r.jan)}</td>
+      <td style="color:var(--feb)">${fmtS(r.feb)}</td>
+      <td style="color:var(--mar)">${fmtS(r.mar)}</td>
+      <td style="font-weight:700;color:#fff">${fmtS(r.total)}</td>
+      <td>
+        <div class="bar-row">
+          <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:linear-gradient(90deg,var(--total),var(--jan))"></div></div>
+          <span style="font-size:11px;color:var(--muted);min-width:38px">${share}%</span>
+        </div>
+      </td>
+    </tr>`;
+});
+
+/* ── Dark chart theme ────────────────────────────────── */
+function chartOpts(isSingleColor, colorHex, labelStr) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 700, easing: 'easeOutQuart' },
+    plugins: {
+      legend: isSingleColor ? { display:false } : {
+        labels: { color:'#94a3b8', font:{family:'Inter',size:12}, boxWidth:12, padding:16 }
+      },
+      tooltip: {
+        backgroundColor:'#0d1220',
+        borderColor:'#1e2740',
+        borderWidth:1,
+        titleColor:'#e8edf5',
+        bodyColor:'#94a3b8',
+        padding:14,
+        callbacks: {
+          title: ctx => S_NAMES[ctx[0].dataIndex],
+          label: ctx => ` ${ctx.dataset.label}: ${fmt(ctx.raw)}`,
+          ...(isSingleColor ? {} : {
+            footer: items => `  Total: ${fmt(S_TOTAL[items[0].dataIndex])}`
+          })
+        }
+      },
+      datalabels: isSingleColor ? {
+        anchor:'end', align:'end', offset:3, rotation:-60,
+        formatter: v => v ? fmt(v) : '',
+        font:{ size:8, weight:'700', family:'Inter' },
+        color:'#94a3b8', clip:false
+      } : { display:false }
+    },
+    layout: { padding:{ top: isSingleColor ? 52 : 12, right:8 } },
+    scales: {
+      x: {
+        stacked: !isSingleColor,
+        grid:{ color:'#1e274066' },
+        ticks:{
+          color:'#4e5f7a',
+          font:{size:9,family:'Inter'},
+          maxRotation:45, minRotation:30,
+          callback:(v,i)=>S_SHORT[i]
+        }
+      },
+      y: {
+        stacked: !isSingleColor,
+        beginAtZero:true,
+        grid:{ color:'#1e274055' },
+        ticks:{ color:'#4e5f7a', font:{size:9,family:'Inter'}, callback:yTick }
+      }
+    }
+  };
+}
+
+/* ── Build Total (stacked) ───────────────────────────── */
+new Chart(document.getElementById('chartTotal'), {
+  type:'bar',
+  data:{
+    labels: S_SHORT,
+    datasets:[
+      { label:'Jan 2026', data:S_JAN, backgroundColor:'#4c9effcc', borderColor:'#4c9eff', borderWidth:1, borderRadius:{topLeft:0,topRight:0,bottomLeft:4,bottomRight:4}, borderSkipped:false, stack:'s' },
+      { label:'Feb 2026', data:S_FEB, backgroundColor:'#3ecf8ecc', borderColor:'#3ecf8e', borderWidth:1, borderRadius:0, borderSkipped:false, stack:'s' },
+      { label:'Mar 2026', data:S_MAR, backgroundColor:'#f5c518cc', borderColor:'#f5c518', borderWidth:1, borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0}, borderSkipped:false, stack:'s' }
+    ]
+  },
+  options: chartOpts(false)
+});
+
+/* ── Build Single Month ───────────────────────────────── */
+function buildSingle(id, data, color, label) {
+  new Chart(document.getElementById(id), {
+    type:'bar',
+    data:{
+      labels:S_SHORT,
+      datasets:[{
+        label, data,
+        backgroundColor: color+'bb',
+        borderColor: color,
+        borderWidth:1.5,
+        borderRadius:5,
+        borderSkipped:false,
+        hoverBackgroundColor: color
+      }]
+    },
+    options: chartOpts(true, color, label)
+  });
+}
+
+buildSingle('chartJan', S_JAN, '#4c9eff', 'Jan 2026');
+buildSingle('chartFeb', S_FEB, '#3ecf8e', 'Feb 2026');
+buildSingle('chartMar', S_MAR, '#f5c518', 'Mar 2026');
+
+/* ══════════════════════════════════════
+   SLIDE NAVIGATION ENGINE
+══════════════════════════════════════ */
+const slides  = document.querySelectorAll('.slide');
+const TOTAL_S = slides.length;
+let current   = 0;
+let animating = false;
+
+// Build dots
+const dotsEl = document.getElementById('dots');
+slides.forEach((_,i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i===0?' active':'');
+  d.onclick = () => goSlide(i);
+  dotsEl.appendChild(d);
+});
+
+function goSlide(next) {
+  if(animating) return;
+  if(next < 0 || next >= TOTAL_S) return;
+  if(next === current) return;
+
+  animating = true;
+  const from = slides[current];
+  const to   = slides[next];
+
+  // Direction: forward or back
+  const dir = next > current ? 1 : -1;
+
+  // Set start position of incoming slide
+  to.style.transition = 'none';
+  to.style.opacity    = '0';
+  to.style.transform  = `translateX(${dir * 80}px)`;
+  to.classList.remove('out-left','active');
+  to.style.pointerEvents = 'none';
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      // Restore transitions
+      to.style.transition = '';
+      from.style.transition = '';
+
+      // Animate out current
+      from.classList.remove('active');
+      from.style.opacity   = '0';
+      from.style.transform = `translateX(${-dir * 80}px)`;
+
+      // Animate in next
+      to.style.opacity   = '1';
+      to.style.transform = 'translateX(0)';
+      to.style.pointerEvents = 'all';
+      to.style.zIndex = '2';
+      from.style.zIndex = '1';
+
+      // Update state
+      current = next;
+      updateUI();
+
+      setTimeout(() => {
+        from.style.opacity   = '';
+        from.style.transform = '';
+        from.style.zIndex    = '';
+        to.style.zIndex      = '';
+        animating = false;
+      }, 650);
+    });
+  });
+}
+
+function updateUI() {
+  // Dots
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===current));
+  // Counter
+  document.getElementById('counterText').textContent = `SLIDE ${current+1} OF ${TOTAL_S}`;
+  document.getElementById('slide-label').textContent = `${current+1} / ${TOTAL_S}`;
+  // Progress bar
+  document.getElementById('progress-bar').style.width = ((current+1)/TOTAL_S*100) + '%';
+  // Buttons
+  document.getElementById('btnPrev').disabled = current === 0;
+  document.getElementById('btnNext').disabled = current === TOTAL_S - 1;
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if(e.key==='ArrowRight'||e.key==='ArrowDown') goSlide(current+1);
+  if(e.key==='ArrowLeft' ||e.key==='ArrowUp')   goSlide(current-1);
+});
+
+// Touch / swipe support
+let touchX = 0;
+document.addEventListener('touchstart', e => touchX = e.touches[0].clientX, {passive:true});
+document.addEventListener('touchend',   e => {
+  const dx = e.changedTouches[0].clientX - touchX;
+  if(Math.abs(dx) > 50) goSlide(dx < 0 ? current+1 : current-1);
+}, {passive:true});
+
+// Init state
+updateUI();
+</script>
+</body>
+</html>
