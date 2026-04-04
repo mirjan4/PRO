@@ -579,10 +579,10 @@ const S_MAR   = reorder(MAR);
 const S_TOTAL = reorder(TOTAL);
 
 /* ── Formatters ──────────────────────────────────────── */
-const fmt  = v => v ? '₹' + Number(v).toLocaleString('en-IN') : '';
-const fmtL = v => v >= 100000 ? '₹'+(v/100000).toFixed(2)+'L' : '₹'+(v/1000).toFixed(0)+'K';
-const fmtS = v => v ? '₹'+(v/100000).toFixed(2)+'L' : '–';
-const yTick = v => v>=100000?'₹'+(v/100000).toFixed(1)+'L':v>=1000?'₹'+(v/1000).toFixed(0)+'K':v===0?'₹0':'';
+const fmt  = v => v ? '' + Number(v).toLocaleString('en-IN') : '';
+const fmtL = v => v >= 100000 ? ''+(v/100000).toFixed(2)+'L' : '₹'+(v/1000).toFixed(0)+'K';
+const fmtS = v => v ? '' + Number(v).toLocaleString('en-IN') : '–';
+const yTick = v => v>=100000?''+(v/100000).toFixed(1)+'L':v>=1000?'₹'+(v/1000).toFixed(0)+'K':v===0?'₹0':'';
 
 /* ── Stat Grid (Slide 1) ─────────────────────────────── */
 const statData = [
@@ -610,15 +610,15 @@ const ranked = IDX.map((origIdx, rank) => ({
 const maxT = ranked[0].total;
 const tbody = document.getElementById('rankBody');
 ranked.forEach((r,rank) => {
-  let bc='plain', icon=rank+1;
-  if(rank===0){bc='gold';icon='🥇';}
-  else if(rank===1){bc='silver';icon='🥈';}
-  else if(rank===2){bc='bronze';icon='🥉';}
+  let bc='plain';
+  if(rank===0) bc='gold';
+  else if(rank===1) bc='silver';
+  else if(rank===2) bc='bronze';
   const pct = (r.total/maxT*100).toFixed(0);
   const share = (r.total/GRAND*100).toFixed(1);
   tbody.innerHTML += `
     <tr>
-      <td><span class="rank-badge ${bc}">${icon}</span></td>
+      <td><span class="rank-badge ${bc}">${rank+1}</span></td>
       <td style="font-weight:600">${r.name}</td>
       <td style="color:var(--jan)">${fmtS(r.jan)}</td>
       <td style="color:var(--feb)">${fmtS(r.feb)}</td>
