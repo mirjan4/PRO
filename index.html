@@ -156,6 +156,49 @@ html, body {
   box-shadow: 0 20px 35px -5px rgba(59, 130, 246, 0.5);
 }
 
+/* ── Custom Tooltips ────────────────────────────────── */
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+  border-bottom: 1px dotted rgba(255, 255, 255, 0.3);
+}
+.tooltip-text {
+  visibility: hidden;
+  width: 180px;
+  background-color: #0d1220;
+  color: #fff;
+  text-align: center;
+  border-radius: 8px;
+  padding: 8px 12px;
+  position: absolute;
+  z-index: 100 !important;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+.tooltip-container:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+.tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #0d1220 transparent transparent transparent;
+}
+
 .title-badge {
   display: inline-block;
   padding: 8px 24px;
@@ -1002,7 +1045,16 @@ const R_TOP5_SHORT = R_TOP5_NAMES.map(n => { const w=n.split(' '); return w.leng
 const R_TOP5_VALS = r_ranked.map(x => x.v);
 
 /* ── New SP Dawa Data ── */
-const DAWA_NAMES = ["BANGLORE", "TRISSUR", "GUJARAT", "CHIYYUR", "COIMBATORE", "MANGLORE", "DWEEP"];
+const DAWA_NAMES = ["BANGLORE", "TRISSUR", "GUJARAT", "CHIYYUR UST", "COIMBATORE", "MANGLORE", "DWEEP"];
+const DAWA_TOOLTIPS = {
+  "BANGLORE": "Shihab Saquafi & Team",
+  "TRISSUR": "Shabeer Ali & Team",
+  "GUJARAT": "Shahid Saquafi & Team",
+  "CHIYYUR UST": "CHIYYUR Ustad & Team",
+  "COIMBATORE": "Navas Saquafi & Team",
+  "MANGLORE": "Ansar himami& Team",
+  "DWEEP": "Aslam Ahsani & Team"
+};
 const DAWA_25 = [2984000, 467700, 25000, 295000, 185000, 0, 0];
 const DAWA_26 = [1985000, 558533, 50000, 608533, 383500, 1083123, 782100];
 
@@ -1184,11 +1236,16 @@ function createTable(tableId, names, data2026, data2025) {
     const diffCls = r.diff > 0 ? 'diff-pos' : (r.diff < 0 ? 'diff-neg' : '');
     const diffPref = r.diff > 0 ? '+' : '';
     const rowCls = i < 3 ? 'row-top3' : '';
+    const tooltip = DAWA_TOOLTIPS[r.name];
+    const nameHtml = tooltip 
+      ? `<div class="tooltip-container">${r.name}<span class="tooltip-text">${tooltip}</span></div>`
+      : r.name;
+
     html += `
       <tr class="${rowCls}">
         <td><span class="rank-badge ${i < 3 ? 'gold' : 'plain'}">${i + 1}</span></td>
         <td style="font-weight:600">
-          <button class="pro-link" onclick="openPROByName('${r.name}')">${r.name}</button>
+          <button class="pro-link" onclick="openPROByName('${r.name}')">${nameHtml}</button>
         </td>
         <td style="font-weight:700">₹${r.v26.toLocaleString('en-IN')}</td>
         <td style="color:var(--muted)">₹${r.v25.toLocaleString('en-IN')}</td>
@@ -1537,7 +1594,14 @@ chartInstances['chartDawa'] = new Chart(document.getElementById('chartDawa'), {
       tooltip: {
         backgroundColor: '#0d1220', borderColor: '#1e2740', borderWidth: 1,
         titleColor: '#e8edf5', bodyColor: '#94a3b8', padding: 14,
-        callbacks: { title: ctx => D_S_NAMES[ctx[0].dataIndex], label: ctx => ` ${ctx.dataset.label}: ₹${fmt(ctx.raw)}` }
+        callbacks: { 
+          title: ctx => D_S_NAMES[ctx[0].dataIndex], 
+          label: ctx => ` ${ctx.dataset.label}: ₹${fmt(ctx.raw)}`,
+          afterLabel: ctx => {
+            const team = D_S_NAMES[ctx.dataIndex];
+            return DAWA_TOOLTIPS[team] ? "\n" + DAWA_TOOLTIPS[team] : "";
+          }
+        }
       },
       datalabels: {
         anchor: 'end', align: 'end', offset: 2, rotation: -90,
