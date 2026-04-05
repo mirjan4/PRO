@@ -117,31 +117,47 @@ html, body {
 
 .cover-card {
   background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 80px 60px;
-  border-radius: 48px;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 100px 80px;
+  border-radius: 64px;
   text-align: center;
-  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.5),
+              0 0 50px -10px rgba(76, 158, 255, 0.15);
   position: relative;
   z-index: 5;
   width: 100%;
-  max-width: 800px;
+  max-width: 900px;
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
 }
 
-.cover-card::before {
-  content: ''; position: absolute;
-  top: -200px; left: -200px; width: 400px; height: 400px;
-  background: radial-gradient(circle, #4c9eff22 0%, transparent 70%);
-  filter: blur(40px); z-index: -1;
+.cover-card:hover {
+  border-color: rgba(76, 158, 255, 0.4);
+  box-shadow: 0 60px 130px -30px rgba(0, 0, 0, 0.6),
+              0 0 60px -5px rgba(76, 158, 255, 0.25);
 }
 
 .cover-title {
-  font-size: 82px; font-weight: 950; line-height: 1;
-  background: linear-gradient(135deg, #fff 40%, #94a3b8 100%);
+  font-size: 64px; font-weight: 950; line-height: 1;
+  background: linear-gradient(135deg, #fff 20%, #4c9eff 50%, #94a3b8 80%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  margin: 20px 0; letter-spacing: -2px;
+  margin: 30px 0; letter-spacing: -2px;
+  filter: drop-shadow(0 0 20px rgba(76, 158, 255, 0.3));
+}
+
+.cover-sep {
+  width: 80px; height: 4px; border-radius: 10px;
+  background: linear-gradient(90deg, #4c9eff, #3ecf8e);
+  margin: 40px auto;
+  box-shadow: 0 0 15px rgba(76, 158, 255, 0.6);
+}
+
+.cover-period {
+  font-size: 32px; font-weight: 800; letter-spacing: 2px;
+  color: #fff; text-transform: uppercase; margin-bottom: 5px;
+  background: linear-gradient(90deg, #94a3b8, #fff, #94a3b8);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
 
 .cover-start-btn {
@@ -710,11 +726,13 @@ tbody tr:hover td { background: #ffffff06; }
 
   <!-- ── COVER PAGE ── -->
   <section class="slide slide-title active cover-slide portrait" data-slide="0">
-    <div class="cover-card">
+    <div class="cover-card" id="mainCoverCard">
       <div class="title-badge">Official Document • 2026</div>
-      <h1 class="cover-title">Collection Report<br>2026</h1>
-      <p class="title-sub" style="font-size: 24px; color: #94a3b8; font-weight: 500; margin: 0;">Markaz Takaful</p>
-      <div id="coverDate" style="color:#64748b; font-size: 14px; margin-top: 40px; font-weight: 700; letter-spacing: 2px;"></div>
+      <h1 class="cover-title">Collection Report 2026</h1>
+     
+      <p class="cover-period">Jan – March</p>
+      <p class="title-sub" style="font-size: 18px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 4px;">Markaz Takaful</p>
+      <div id="coverDate" style="color:#4e5f7a; font-size: 13px; margin-top: 50px; font-weight: 700; letter-spacing: 2px;"></div>
       <button class="cover-start-btn" onclick="goSlide(1)">🚀 START PRESENTATION</button>
     </div>
     <div class="print-footer-label">Collection Report 2026 • Page 1 of 16</div>
@@ -920,7 +938,7 @@ tbody tr:hover td { background: #ffffff06; }
   <section class="slide slide-title portrait" data-slide="12">
     <div class="title-badge">Overview</div>
     <div class="title-main">Overall Collection Summary</div>
-    <div class="title-sub">Category-wise Distribution</div>
+    <div class="title-sub">Category-wise Distribution (Ramadan 2026)</div>
     <div class="stat-grid" id="overallSumGrid"></div>
     <div class="print-footer-label">Collection Report 2026 • Page 13 of 16</div>
   </section>
@@ -1543,7 +1561,7 @@ const OVERALL_VALS = { OFFICE: 6760556, PRO: 10235696, GLOBAL: 3769679, TOTAL: 2
 const overallSumData = [
   { label:'OFFICE', val:OVERALL_VALS.OFFICE, cls:'s-jan', sub:'Including Ramadan SP Dawa' },
   { label:'PRO', val:OVERALL_VALS.PRO, cls:'s-feb', sub:'Combined Collection (Local + Global)' },
-  { label:'GLOBAL', val:OVERALL_VALS.GLOBAL, cls:'s-mar', sub:'Collection Recorded To Date' },
+  { label:'GLOBAL', val:OVERALL_VALS.GLOBAL, cls:'s-mar', sub:'Collection so far' },
   { label:'TOTAL', val:OVERALL_VALS.TOTAL, cls:'s-total', sub:'Final Consolidated Figure', bold: true }
 ];
 const osg = document.getElementById('overallSumGrid');
@@ -1695,7 +1713,16 @@ document.addEventListener('touchend', e => {
   if (printDate) printDate.textContent = "Generated: " + dateStr;
 })();
 
-
+// Tilt Effect for Cover
+const coverCard = document.getElementById('mainCoverCard');
+if (coverCard) {
+  document.addEventListener('mousemove', (e) => {
+    if (current !== 0) return;
+    const xAxis = (window.innerWidth / 2 - e.pageX) / 45;
+    const yAxis = (window.innerHeight / 2 - e.pageY) / 45;
+    coverCard.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+  });
+}
 </script>
 </body>
 </html>
