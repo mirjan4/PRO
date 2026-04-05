@@ -28,8 +28,13 @@
   --total:  #a78bfa;
   --accent: #4c9eff;
   --radius: 18px;
-  --slide-dur: 600ms;
+  --radial-gold: radial-gradient(circle at center, #f5c51822 0%, transparent 70%);
 }
+
+/* Table Highlighting */
+.row-top3 { background: var(--radial-gold) !important; }
+.diff-pos { color: #3ecf8e !important; font-weight: 700; }
+.diff-neg { color: #ff4d4d !important; font-weight: 700; }
 
 html, body {
   width: 100%; height: 100%;
@@ -89,6 +94,8 @@ html, body {
 .slide-jan     { background: radial-gradient(ellipse at 20% 40%, #0c1c33 0%, #080c14 70%); }
 .slide-feb     { background: radial-gradient(ellipse at 80% 60%, #0a2018 0%, #080c14 70%); }
 .slide-mar     { background: radial-gradient(ellipse at 40% 20%, #241e08 0%, #080c14 70%); }
+.slide-ramadan { background: radial-gradient(ellipse at 50% 50%, #1a0f0a 0%, #080c14 80%); }
+.slide-diff    { background: radial-gradient(ellipse at 50% 50%, #0f1a24 0%, #080c14 80%); }
 
 /* ══════════════════════════════════════
    SLIDE 1 — TITLE
@@ -413,6 +420,41 @@ tbody tr:hover td { background: #ffffff06; }
   #nav { padding: 0 16px; }
   .nav-btn { padding: 9px 16px; font-size: 12px; }
 }
+
+/* ══════════════════════════════════════
+   MODAL & INTERACTIVE LINKS
+══════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(7, 11, 22, 0.85); backdrop-filter: blur(8px);
+  display: none; align-items: center; justify-content: center;
+  z-index: 9999; opacity: 0; transition: opacity 0.30s ease;
+}
+.modal-overlay.open { display: flex; opacity: 1; }
+.modal-content {
+  background: #111827; border: 1px solid #1f2937;
+  width: 90%; max-width: 600px; padding: 40px; border-radius: 24px;
+  position: relative; transform: translateY(20px); transition: transform 0.30s ease;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+}
+.modal-overlay.open .modal-content { transform: translateY(0); }
+.modal-close {
+  position: absolute; top: 20px; right: 20px; background: none; border: none;
+  color: #94a3b8; font-size: 32px; cursor: pointer; line-height: 1;
+}
+.modal-close:hover { color: #fff; }
+.modal-header { margin-bottom: 30px; text-align: center; }
+#modalTitle { font-size: 28px; font-weight: 700; color: #fff; margin: 10px 0 5px; letter-spacing: -0.5px; }
+#modalSub { color: #94a3b8; font-size: 14px; }
+.modal-chart-wrap { height: 320px; position: relative; }
+
+.pro-link {
+  background: none; border: none; padding: 0; color: inherit; font: inherit;
+  cursor: pointer; text-decoration: none; border-bottom: 1px dashed rgba(255,255,255,0.2);
+  transition: all 0.2s ease;
+}
+.pro-link:hover { color: #4c9eff; border-bottom-color: #4c9eff; transform: translateY(-1px); }
+
 </style>
 </head>
 <body>
@@ -421,8 +463,23 @@ tbody tr:hover td { background: #ffffff06; }
 <div id="progress-bar"></div>
 
 <!-- ══ Corner Label ══ -->
-<div id="slide-label">1 / 6</div>
+<div id="slide-label">1 / 11</div>
 <div id="kb-hint">← → Arrow Keys</div>
+
+<!-- ══ Modal Popup ══ -->
+<div id="proModal" class="modal-overlay">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-header">
+      <div id="modalPill" class="slide-pill pill-total">PRO Profile</div>
+      <h2 id="modalTitle">PRO Performance</h2>
+      <p id="modalSub">Monthly Collection Breakdown (Q1 2026)</p>
+    </div>
+    <div class="modal-chart-wrap">
+      <canvas id="modalChart"></canvas>
+    </div>
+  </div>
+</div>
 
 <!-- ════════════════════════════════════════════
      DECK
@@ -525,6 +582,65 @@ tbody tr:hover td { background: #ffffff06; }
     </div>
   </section>
 
+  <!-- ── RAMADAN SECTION ── -->
+
+
+  <!-- ── DETAILED ANALYTICS SECTION ── -->
+
+  <!-- ── SLIDE 7: RAMADAN SUMMARY ── -->
+  <section class="slide slide-title" data-slide="6">
+    <div class="title-badge">🌙 Ramadan Summary Report</div>
+    <div class="title-main">Ramadan 2026 Performance</div>
+    <div class="title-sub">Comprehensive Growth Comparison &nbsp;•&nbsp; Feb 19 – Mar 20</div>
+    <div class="stat-grid" id="ramadanStatGrid"></div>
+  </section>
+
+  <!-- ── DETAILED ANALYTICS SECTION ── -->
+
+  <!-- RAMADAN LOCAL -->
+  <section class="slide slide-ranking" data-slide="7">
+    <div class="slide-inner">
+      <div class="slide-heading">
+        <div class="slide-heading-left">
+          <div class="slide-tag">Detailed Report</div>
+          <div class="slide-h2">Ramadan Local Analysis</div>
+        </div>
+      </div>
+      <div class="rank-wrap"><table id="tableRamLocal"></table></div>
+    </div>
+  </section>
+  <section class="slide slide-ramadan" data-slide="8">
+    <div class="slide-inner">
+      <div class="slide-heading">
+        <div class="slide-heading-left"><div class="slide-tag">Performance Chart</div><div class="slide-h2">Ramadan Local 2026 Analysis</div></div>
+        <div style="display:flex; gap:8px"><span class="slide-pill pill-jan">█ 2026 Local</span></div>
+      </div>
+      <div class="chart-area"><canvas id="chartRamLocalComp"></canvas></div>
+    </div>
+  </section>
+
+  <!-- RAMADAN COMBINED -->
+  <section class="slide slide-ranking" data-slide="9">
+    <div class="slide-inner">
+      <div class="slide-heading">
+        <div class="slide-heading-left">
+          <div class="slide-tag">Detailed Report</div>
+          <div class="slide-h2">Ramadan Combined Analysis</div>
+        </div>
+      </div>
+      <div class="rank-wrap"><table id="tableRamComb"></table></div>
+    </div>
+  </section>
+  <section class="slide slide-ramadan" data-slide="10">
+    <div class="slide-inner">
+      <div class="slide-heading">
+        <div class="slide-heading-left"><div class="slide-tag">Performance Chart</div><div class="slide-h2">Ramadan Combined 2026 Analysis</div></div>
+        <div style="display:flex; gap:8px"><span class="slide-pill pill-feb">█ 2026 Combined</span></div>
+      </div>
+      <div class="chart-area"><canvas id="chartRamCombComp"></canvas></div>
+    </div>
+  </section>
+
 </div>
 
 <!-- ════ NAVIGATION ════ -->
@@ -536,7 +652,7 @@ tbody tr:hover td { background: #ffffff06; }
 
   <div id="slide-counter">
     <div class="dots" id="dots"></div>
-    <div class="counter-text" id="counterText">SLIDE 1 OF 6</div>
+    <div class="counter-text" id="counterText">SLIDE 1 OF 11</div>
   </div>
 
   <button class="nav-btn" id="btnNext" onclick="goSlide(current+1)">
@@ -562,7 +678,7 @@ const NAMES = [
 
 const JAN = [636550,891500,175880,259890,147659,183619,161999,82998,45111,17400,7000,32100,133160,2000,8300,10000,29000,null,null,null];
 const FEB = [694700,885008,233560,519520,130292,168500,76053,70500,46000,212400,2500,12100,62500,65923,8300,62340,163000,10000,18527,null];
-const MAR = [111300,719263,276500,624750,289152,168500,121408,65500,157050,33600,5000,27600,23300,227070,8300,17500,170500,58400,103814,21500];
+const MAR = [111300,719263,276500,624750,289152,331431,121408,65500,157050,33600,5000,27600,23300,267070,8300,17500,170500,58400,103814,21500];
 
 const TOTAL = NAMES.map((_,i) => (JAN[i]||0)+(FEB[i]||0)+(MAR[i]||0));
 const GRAND  = TOTAL.reduce((a,b)=>a+b,0);
@@ -584,6 +700,33 @@ const fmtL = v => v >= 100000 ? ''+(v/100000).toFixed(2)+'L' : ''+(v/1000).toFix
 const fmtS = v => v ? '' + Number(v).toLocaleString('en-IN') : '–';
 const yTick = v => v>=100000?''+(v/100000).toFixed(1)+'L':v>=1000?''+(v/1000).toFixed(0)+'K':v===0?'0':'';
 
+/* ── Ramadan Data ─────────────────────────────────────── */
+const R_NAMES = ["VPM Saquafi", "Koya Saquafi", "Syed Uvais Saquafi", "Abdul Majeed Zaini", "Moosa Saquafi", "Abdulla Saquafi (Mumbai)", "Husain Saquafi (Madavoor)", "Mansoor Saquafi", "Saeed Saquafi CP", "Gafoor Saquafi (Umra)", "Saleem Musliyar", "Muneer Kamil Saquafi", "Falal Saquafi", "Kaleel Saquafi (Thanal)", "Palapettippara", "Kareem Saquafi (Umra)", "Dulkifili Saquafi Amini", "Muneer Madani", "Kader Saquafi (BNG)", "Marzooq Sa’adi"];
+const R_LOCAL_26 = [163900,628233,271500,705170,496431,321500,294589,272183,23300,124750,124609,122341,79000,68400,58600,42340,37700,12600,7500,5000];
+const R_LOCAL_25 = [299062,794081,525333,540300,249667,479500,115900,91566,17915,119500,47820,0,69500,77000,131300,82500,0,10700,101000,0];
+const R_COMB_26 = [4227900,1678233,1298150,705170,496431,321500,294589,272183,258700,124750,124609,122341,79000,68400,58600,42340,37700,12600,7500,5000];
+const R_COMB_25 = [4304428,1089081,525333,540300,249667,479500,115900,91566,221890,119500,47820,0,69500,77000,131300,82500,0,10700,101000,0];
+
+const R_SHORT = R_NAMES.map(n => { const w=n.split(' '); return w.length>=2?w[0]+'\n'+w[1]:w[0]; });
+const R_DIFF = R_LOCAL_26.map((v, i) => v - R_LOCAL_25[i]);
+
+/* ── Ramadan Top 5 Logic ── */
+const r_ranked = R_NAMES.map((n, i) => ({ n, v: R_LOCAL_26[i] })).sort((a,b) => b.v - a.v).slice(0, 5);
+const R_TOP5_NAMES = r_ranked.map(x => x.n);
+const R_TOP5_SHORT = R_TOP5_NAMES.map(n => { const w=n.split(' '); return w.length>=2?w[0]+'\n'+w[1]:w[0]; });
+const R_TOP5_VALS = r_ranked.map(x => x.v);
+
+/* ── Sorted Ramadan Data for Charts ── */
+const r_local_sorted = R_NAMES.map((n, i) => ({ name: n, value: R_LOCAL_26[i] || 0 })).sort((a,b) => b.value - a.value);
+const R_L_S_NAMES = r_local_sorted.map(x => x.name);
+const R_L_S_VALS = r_local_sorted.map(x => x.value);
+const R_L_S_SHORT = R_L_S_NAMES.map(n => { const w=n.split(' '); return w.length>=2?w[0]+'\n'+w[1]:w[0]; });
+
+const r_comb_sorted = R_NAMES.map((n, i) => ({ name: n, value: R_COMB_26[i] || 0 })).sort((a,b) => b.value - a.value);
+const R_C_S_NAMES = r_comb_sorted.map(x => x.name);
+const R_C_S_VALS = r_comb_sorted.map(x => x.value);
+const R_C_S_SHORT = R_C_S_NAMES.map(n => { const w=n.split(' '); return w.length>=2?w[0]+'\n'+w[1]:w[0]; });
+
 /* ── Stat Grid (Slide 1) ─────────────────────────────── */
 const statData = [
   { label:'3-Month Total', val:GRAND,                              cls:'s-total', sub:'All PROs combined' },
@@ -601,11 +744,34 @@ statData.forEach(d => {
     </div>`;
 });
 
+/* ── Ramadan Stat Grid (Slide 11) ─────────────────────── */
+const r_tot_26 = R_LOCAL_26.reduce((a,b)=>a+(b||0),0);
+const r_tot_25 = R_LOCAL_25.reduce((a,b)=>a+(b||0),0);
+const r_growth = ((r_tot_26 - r_tot_25) / r_tot_25 * 100).toFixed(1);
+
+const ramadanStatData = [
+  { label:'Total 2026 (Local)', val:r_tot_26, cls:'s-jan',   sub:'Current Year Ramadan' },
+  { label:'Total 2025 (Local)', val:r_tot_25, cls:'s-mar',   sub:'Previous Year Ramadan' },
+  { label:'Growth Amount',      val:r_tot_26 - r_tot_25, cls:'s-feb', sub:'Net Difference' },
+  { label:'Growth %',          val:r_growth + '%',       cls:'s-total', sub:'Year-on-Year Change' }
+];
+
+const rsg = document.getElementById('ramadanStatGrid');
+ramadanStatData.forEach(d => {
+  const displayVal = typeof d.val === 'string' ? d.val : fmtL(d.val);
+  rsg.innerHTML += `
+    <div class="stat-box ${d.cls}">
+      <div class="slabel">${d.label}</div>
+      <div class="sval">${displayVal}</div>
+      <div class="ssub">${d.sub}</div>
+    </div>`;
+});
+
 /* ── Rank Table (Slide 3) ────────────────────────────── */
 const ranked = IDX.map((origIdx, rank) => ({
   name: NAMES[origIdx],
   jan: JAN[origIdx]||0, feb: FEB[origIdx]||0, mar: MAR[origIdx]||0,
-  total: TOTAL[origIdx], rank
+  total: TOTAL[origIdx], rank, origIdx
 }));
 const maxT = ranked[0].total;
 const tbody = document.getElementById('rankBody');
@@ -619,7 +785,9 @@ ranked.forEach((r,rank) => {
   tbody.innerHTML += `
     <tr>
       <td><span class="rank-badge ${bc}">${rank+1}</span></td>
-      <td style="font-weight:600">${r.name}</td>
+      <td style="font-weight:600">
+        <button class="pro-link" onclick="openPROChart(${r.origIdx})">${r.name}</button>
+      </td>
       <td style="color:var(--jan)">${fmtS(r.jan)}</td>
       <td style="color:var(--feb)">${fmtS(r.feb)}</td>
       <td style="color:var(--mar)">${fmtS(r.mar)}</td>
@@ -633,8 +801,57 @@ ranked.forEach((r,rank) => {
     </tr>`;
 });
 
+/* ── createTable Function ────────────────────────────── */
+function createTable(tableId, names, data2026, data2025) {
+  const table = document.getElementById(tableId);
+  const rows = names.map((name, i) => ({
+    name,
+    v26: data2026[i] || 0,
+    v25: data2025 ? (data2025[i] || 0) : 0,
+    diff: (data2026[i] || 0) - (data2025 ? (data2025[i] || 0) : 0)
+  })).sort((a, b) => b.v26 - a.v26);
+
+  let html = `
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>PRO Name</th>
+        <th>2026 Collection</th>
+        <th>2025 Collection</th>
+        <th>Difference</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  rows.forEach((r, i) => {
+    const diffCls = r.diff > 0 ? 'diff-pos' : (r.diff < 0 ? 'diff-neg' : '');
+    const diffPref = r.diff > 0 ? '+' : '';
+    const rowCls = i < 3 ? 'row-top3' : '';
+    html += `
+      <tr class="${rowCls}">
+        <td><span class="rank-badge ${i < 3 ? 'gold' : 'plain'}">${i + 1}</span></td>
+        <td style="font-weight:600">
+          <button class="pro-link" onclick="openPROByName('${r.name}')">${r.name}</button>
+        </td>
+        <td style="font-weight:700">₹${r.v26.toLocaleString('en-IN')}</td>
+        <td style="color:var(--muted)">₹${r.v25.toLocaleString('en-IN')}</td>
+        <td class="${diffCls}">${diffPref}₹${r.diff.toLocaleString('en-IN')}</td>
+      </tr>`;
+  });
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+/* ── Chart Tracker (Prevents 'Canvas already in use' error) ──── */
+const chartInstances = {};
+function regChart(id, instance) {
+  if (chartInstances[id]) chartInstances[id].destroy();
+  chartInstances[id] = instance;
+}
+
+
 /* ── Dark chart theme ────────────────────────────────── */
-function chartOpts(isSingleColor, colorHex, labelStr) {
+function chartOpts(isSingleColor, colorHex, labelStr, customShort, customLong) {
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -651,7 +868,7 @@ function chartOpts(isSingleColor, colorHex, labelStr) {
         bodyColor:'#94a3b8',
         padding:14,
         callbacks: {
-          title: ctx => S_NAMES[ctx[0].dataIndex],
+          title: ctx => customLong ? customLong[ctx[0].dataIndex] : S_NAMES[ctx[0].dataIndex],
           label: ctx => ` ${ctx.dataset.label}: ${fmt(ctx.raw)}`,
           ...(isSingleColor ? {} : {
             footer: items => `  Total: ${fmt(S_TOTAL[items[0].dataIndex])}`
@@ -660,7 +877,7 @@ function chartOpts(isSingleColor, colorHex, labelStr) {
       },
       datalabels: isSingleColor ? {
         anchor:'end', align:'end', offset:3, rotation:-60,
-        formatter: v => v ? fmt(v) : '',
+        formatter: v => v ? '₹' + fmt(v) : '',
         font:{ size:8, weight:'700', family:'Inter' },
         color:'#94a3b8', clip:false
       } : { display:false }
@@ -674,7 +891,7 @@ function chartOpts(isSingleColor, colorHex, labelStr) {
           color:'#4e5f7a',
           font:{size:9,family:'Inter'},
           maxRotation:45, minRotation:30,
-          callback:(v,i)=>S_SHORT[i]
+          callback: (v, i) => customShort ? customShort[i] : S_SHORT[i]
         }
       },
       y: {
@@ -687,8 +904,202 @@ function chartOpts(isSingleColor, colorHex, labelStr) {
   };
 }
 
-/* ── Build Total (stacked) ───────────────────────────── */
-new Chart(document.getElementById('chartTotal'), {
+
+
+
+
+/* ══════════════════════════════════════
+   SLIDE NAVIGATION ENGINE (Global)
+══════════════════════════════════════ */
+const slides  = document.querySelectorAll('.slide');
+const TOTAL_S = slides.length;
+let current   = 0;
+let animating = false;
+
+/* ── Build Single Month ───────────────────────────────── */
+function buildSingle(id, data, color, label, customShort, customLong) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  
+  // Highlight top performer: Gold, others: color/Blue
+  const bgColors = data.map((v, i) => (i === 0 && v > 0) ? '#f5c518bb' : (color === '#4c9eff' || !color ? '#4c9effbb' : color + 'bb'));
+  const borderColors = data.map((v, i) => (i === 0 && v > 0) ? '#f5c518' : (color === '#4c9eff' || !color ? '#4c9eff' : color));
+
+  if (chartInstances[id]) chartInstances[id].destroy();
+  chartInstances[id] = new Chart(el, {
+    type:'bar',
+    data:{
+      labels: customShort || S_SHORT,
+      datasets:[{
+        label, data,
+        backgroundColor: bgColors,
+        borderColor: borderColors,
+        borderWidth:1.5,
+        borderRadius:5,
+        borderSkipped:false,
+        hoverBackgroundColor: (color === '#f5c518' ? '#f5c518' : (color || '#4c9eff'))
+      }]
+    },
+    options: chartOpts(true, color, label, customShort, customLong)
+  });
+}
+
+function updateUI() {
+  try {
+    const slideLabel = document.getElementById('slide-label');
+    const counterText = document.getElementById('counterText');
+    const progressBar = document.getElementById('progress-bar');
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+
+    if (slideLabel) slideLabel.textContent = `${current + 1} / ${TOTAL_S}`;
+    if (counterText) counterText.textContent = `SLIDE ${current + 1} OF ${TOTAL_S}`;
+    if (progressBar) progressBar.style.width = ((current + 1) / TOTAL_S * 100) + '%';
+    
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+    
+    if (btnPrev) btnPrev.disabled = (current === 0);
+    if (btnNext) btnNext.disabled = (current === TOTAL_S - 1);
+  } catch(e) { console.error("UI update error", e); }
+}
+
+function goSlide(next) {
+  if (animating) return;
+  if (next < 0 || next >= TOTAL_S) return;
+  if (next === current) return;
+
+  animating = true;
+  const from = slides[current];
+  const to = slides[next];
+  const dir = next > current ? 1 : -1;
+
+  to.style.transition = 'none';
+  to.style.opacity = '0';
+  to.style.transform = `translateX(${dir * 80}px)`;
+  to.classList.remove('out-left', 'active');
+  to.style.pointerEvents = 'none';
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      to.style.transition = '';
+      from.style.transition = '';
+      from.classList.remove('active');
+      from.style.opacity = '0';
+      from.style.transform = `translateX(${-dir * 80}px)`;
+      from.style.pointerEvents = 'none';
+      to.classList.add('active');
+      to.style.opacity = '1';
+      to.style.transform = 'translateX(0)';
+      to.style.pointerEvents = 'all';
+      to.style.zIndex = '2';
+      from.style.zIndex = '1';
+      current = next;
+      updateUI();
+      setTimeout(() => {
+        from.style.opacity = '';
+        from.style.transform = '';
+        from.style.zIndex = '';
+        from.classList.remove('active');
+        to.style.zIndex = '';
+        animating = false;
+      }, 650);
+    });
+  });
+}
+
+// Dots Init
+(function buildDots() {
+  const dotsEl = document.getElementById('dots');
+  if (dotsEl) {
+    dotsEl.innerHTML = '';
+    slides.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'dot' + (i === 0 ? ' active' : '');
+      d.onclick = () => goSlide(i);
+      dotsEl.appendChild(d);
+    });
+  }
+})();
+
+/* ── Modal & PRO Chart Logic ────────────────────────── */
+function openPROChart(idx) {
+  const name = NAMES[idx];
+  const data = [JAN[idx]||0, FEB[idx]||0, MAR[idx]||0];
+  
+  document.getElementById('modalTitle').textContent = name;
+  const overlay = document.getElementById('proModal');
+  overlay.classList.add('open');
+  
+  const ctx = document.getElementById('modalChart').getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, 300);
+  grad.addColorStop(0, '#4c9eff');
+  grad.addColorStop(1, '#3ecf8e');
+
+  if (chartInstances['modalChart']) chartInstances['modalChart'].destroy();
+  chartInstances['modalChart'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ["January", "February", "March"],
+      datasets: [{
+        label: 'Collection',
+        data: data,
+        borderColor: '#4c9eff',
+        backgroundColor: grad,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#fff',
+        pointRadius: 6,
+        borderWidth: 3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        datalabels: {
+          anchor: 'end', align: 'top', offset: 10,
+          color: '#fff', font: { weight: 'bold', size: 12 },
+          formatter: v => '₹' + fmt(v)
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', callback: yTick } }
+      }
+    }
+  });
+}
+
+function openPROByName(name) {
+  const lower = name.toUpperCase();
+  const idx = NAMES.findIndex(n => n.toUpperCase() === lower);
+  if (idx !== -1) openPROChart(idx);
+}
+
+function closeModal() {
+  document.getElementById('proModal').classList.remove('open');
+}
+
+// Close modal on overlay click
+document.getElementById('proModal').onclick = function(e) {
+  if (e.target === this) closeModal();
+};
+
+/* ── Build Analytics ────────────────────────────────── */
+createTable('tableRamLocal', R_NAMES, R_LOCAL_26, R_LOCAL_25);
+createTable('tableRamComb', R_NAMES, R_COMB_26, R_COMB_25);
+
+// Ramadan Charts sorted descending, 2026 only
+buildSingle('chartRamLocalComp', R_L_S_VALS, '#4c9eff', '2026 Local', R_L_S_SHORT, R_L_S_NAMES);
+buildSingle('chartRamCombComp', R_C_S_VALS, '#4c9eff', '2026 Combined', R_C_S_SHORT, R_C_S_NAMES);
+
+buildSingle('chartJan', S_JAN, '#4c9eff', 'Jan 2026');
+buildSingle('chartFeb', S_FEB, '#3ecf8e', 'Feb 2026');
+buildSingle('chartMar', S_MAR, '#f5c518', 'Mar 2026');
+
+if (chartInstances['chartTotal']) chartInstances['chartTotal'].destroy();
+chartInstances['chartTotal'] = new Chart(document.getElementById('chartTotal'), {
   type:'bar',
   data:{
     labels: S_SHORT,
@@ -701,132 +1112,22 @@ new Chart(document.getElementById('chartTotal'), {
   options: chartOpts(false)
 });
 
-/* ── Build Single Month ───────────────────────────────── */
-function buildSingle(id, data, color, label) {
-  new Chart(document.getElementById(id), {
-    type:'bar',
-    data:{
-      labels:S_SHORT,
-      datasets:[{
-        label, data,
-        backgroundColor: color+'bb',
-        borderColor: color,
-        borderWidth:1.5,
-        borderRadius:5,
-        borderSkipped:false,
-        hoverBackgroundColor: color
-      }]
-    },
-    options: chartOpts(true, color, label)
-  });
-}
-
-buildSingle('chartJan', S_JAN, '#4c9eff', 'Jan 2026');
-buildSingle('chartFeb', S_FEB, '#3ecf8e', 'Feb 2026');
-buildSingle('chartMar', S_MAR, '#f5c518', 'Mar 2026');
-
-/* ══════════════════════════════════════
-   SLIDE NAVIGATION ENGINE
-══════════════════════════════════════ */
-const slides  = document.querySelectorAll('.slide');
-const TOTAL_S = slides.length;
-let current   = 0;
-let animating = false;
-
-// Build dots
-const dotsEl = document.getElementById('dots');
-slides.forEach((_,i) => {
-  const d = document.createElement('div');
-  d.className = 'dot' + (i===0?' active':'');
-  d.onclick = () => goSlide(i);
-  dotsEl.appendChild(d);
-});
-
-function goSlide(next) {
-  if(animating) return;
-  if(next < 0 || next >= TOTAL_S) return;
-  if(next === current) return;
-
-  animating = true;
-  const from = slides[current];
-  const to   = slides[next];
-
-  // Direction: forward or back
-  const dir = next > current ? 1 : -1;
-
-  // Set start position of incoming slide
-  to.style.transition = 'none';
-  to.style.opacity    = '0';
-  to.style.transform  = `translateX(${dir * 80}px)`;
-  to.classList.remove('out-left','active');
-  to.style.pointerEvents = 'none';
-
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      // Restore transitions
-      to.style.transition = '';
-      from.style.transition = '';
-
-      // Animate out current
-      from.classList.remove('active');
-      from.style.opacity   = '0';
-      from.style.transform = `translateX(${-dir * 80}px)`;
-      from.style.pointerEvents = 'none';
-
-      // Animate in next
-      to.classList.add('active');
-      to.style.opacity   = '1';
-      to.style.transform = 'translateX(0)';
-      to.style.pointerEvents = 'all';
-      to.style.zIndex = '2';
-      from.style.zIndex = '1';
-
-      // Update state
-      current = next;
-      updateUI();
-
-      setTimeout(() => {
-        from.style.opacity   = '';
-        from.style.transform = '';
-        from.style.zIndex    = '';
-        from.classList.remove('active');
-        to.style.zIndex      = '';
-        to.style.pointerEvents = 'all';
-        animating = false;
-      }, 650);
-    });
-  });
-}
-
-function updateUI() {
-  // Dots
-  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===current));
-  // Counter
-  document.getElementById('counterText').textContent = `SLIDE ${current+1} OF ${TOTAL_S}`;
-  document.getElementById('slide-label').textContent = `${current+1} / ${TOTAL_S}`;
-  // Progress bar
-  document.getElementById('progress-bar').style.width = ((current+1)/TOTAL_S*100) + '%';
-  // Buttons
-  document.getElementById('btnPrev').disabled = current === 0;
-  document.getElementById('btnNext').disabled = current === TOTAL_S - 1;
-}
-
-// Keyboard navigation
-document.addEventListener('keydown', e => {
-  if(e.key==='ArrowRight'||e.key==='ArrowDown') goSlide(current+1);
-  if(e.key==='ArrowLeft' ||e.key==='ArrowUp')   goSlide(current-1);
-});
-
-// Touch / swipe support
-let touchX = 0;
-document.addEventListener('touchstart', e => touchX = e.touches[0].clientX, {passive:true});
-document.addEventListener('touchend',   e => {
-  const dx = e.changedTouches[0].clientX - touchX;
-  if(Math.abs(dx) > 50) goSlide(dx < 0 ? current+1 : current-1);
-}, {passive:true});
-
-// Init state
 updateUI();
+
+// Events
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goSlide(current + 1);
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') goSlide(current - 1);
+});
+
+let touchX = 0;
+document.addEventListener('touchstart', e => touchX = e.touches[0].clientX, { passive: true });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchX;
+  if (Math.abs(dx) > 50) goSlide(dx < 0 ? current + 1 : current - 1);
+}, { passive: true });
+
+
 </script>
 </body>
 </html>
